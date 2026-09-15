@@ -1,20 +1,12 @@
-/*
- * NEXUS PROJEKT | SCP:RP – GMod Loading Screen
- */
-
 const BACKGROUNDS = [
-  "assets/backgrounds/background_1.png",
-  "assets/backgrounds/background_2.jpg"
+  "background_1.jpg",
+  "background_2.jpg"
 ];
 
 const BACKGROUND_CHANGE_TIME = 10000;
 const TAB_CHANGE_TIME = 10000;
-
-const MUSIC_PLAYLIST = [
-  "assets/music/Warteliste.ogg"
-];
+const MUSIC_PLAYLIST = ["Warteliste.ogg"];
 const MUSIC_VOLUME = 0.18;
-
 const STAFF_API_URL = "https://nexus-load-api.seraphicphantom.workers.dev";
 
 const STAFF_MEMBERS = [
@@ -29,89 +21,102 @@ const STAFF_MEMBERS = [
 (function () {
   "use strict";
 
-  const $ = id => document.getElementById(id);
-  const DEFAULT_AVATAR = "assets/avatars/default-avatar.png";
-
+  const $ = (id) => document.getElementById(id);
+  const DEFAULT_AVATAR = "logo.png";
   let filesTotal = 0;
   let filesNeeded = 0;
   let backgroundIndex = 0;
+  let activeBackground = "A";
   let tabIndex = 0;
+  let gotDownloadData = false;
 
-  function setText(id, value, fallback = "UNKNOWN") {
+  function setText(id, value, fallback) {
     const element = $(id);
     if (!element) return;
-
-    element.textContent = value !== undefined && value !== null && value !== ""
-      ? String(value)
-      : fallback;
+    element.textContent = value !== undefined && value !== null && value !== "" ? String(value) : (fallback || "UNKNOWN");
   }
 
   function setProgress(value) {
-    value = Math.max(0, Math.min(100, Number(value) || 0));
-
     const progressBar = $("progressBar");
     const progressPercent = $("progressPercent");
+    const percent = Math.max(0, Math.min(100, Number(value) || 0));
+    if (progressBar) {
+      progressBar.classList.remove("waiting");
+      progressBar.style.width = percent + "%";
+      progressBar.style.transform = "";
+    }
+    if (progressPercent) progressPercent.textContent = Math.round(percent) + "%";
+  }
 
-    if (progressBar) progressBar.style.width = value + "%";
-    if (progressPercent) progressPercent.textContent = Math.round(value) + "%";
+  function showWaitingProgress() {
+    const progressBar = $("progressBar");
+    if (!progressBar || gotDownloadData) return;
+    progressBar.style.width = "35%";
+    progressBar.classList.add("waiting");
   }
 
   function updateProgress() {
-    if (!filesTotal) return;
-
+    if (filesTotal <= 0) return;
     const completed = Math.max(0, filesTotal - filesNeeded);
     setProgress((completed / filesTotal) * 100);
+    setText("downloadText", completed + " / " + filesTotal + " Dateien verarbeitet");
   }
 
   window.GameDetails = function (serverName, serverURL, mapName, maxPlayers, steamID, gamemode) {
     setText("serverName", serverName, "NEXUS PROJEKT | SCP:RP");
-    setText("mapName", mapName);
-    setText("gamemode", gamemode, "SCPRP");
-    setText("staffGamemode", gamemode, "SCPRP");
+    setText("mapName", mapName, "LADEN...");
+    setText("gamemode", gamemode, "SCP:RP");
+    setText("staffGamemode", gamemode, "SCP:RP");
     setText("maxPlayers", maxPlayers, "--");
     setText("statusText", "Mit dem Server verbunden");
-    setText("progressLabel", "CONNECTED");
+    setText("progressLabel", "VERBUNDEN");
   };
 
   window.SetFilesTotal = function (total) {
+    gotDownloadData = true;
     filesTotal = Math.max(0, Number(total) || 0);
     filesNeeded = filesTotal;
 
-    if (!filesTotal) {
+    if (filesTotal === 0) {
       setProgress(100);
+      setText("progressLabel", "BEREIT");
       setText("downloadText", "Keine zusätzlichen Dateien erforderlich.");
       return;
     }
 
-    updateProgress();
+    setProgress(0);
+    setText("progressLabel", "VORBEREITEN");
+    setText("downloadText", "0 / " + filesTotal + " Dateien verarbeitet");
   };
 
   window.SetFilesNeeded = function (needed) {
+    gotDownloadData = true;
     filesNeeded = Math.max(0, Number(needed) || 0);
     updateProgress();
-
-    if (filesTotal) {
-      const completed = Math.max(0, filesTotal - filesNeeded);
-      setText("downloadText", completed + " / " + filesTotal + " Dateien verarbeitet");
-
-      if (filesNeeded === 0) {
-        setText("progressLabel", "READY");
-      }
+    if (filesTotal > 0 && filesNeeded === 0) {
+      setProgress(100);
+      setText("progressLabel", "BEREIT");
     }
   };
 
   window.DownloadingFile = function (fileName) {
-    setText("downloadText", "DOWNLOAD: " + (fileName || "Datei"));
-    setText("progressLabel", "DOWNLOADING");
+    gotDownloadData = true;
+    setText("progressLabel", "DOWNLOAD");
+    setText("downloadText", "LÄDT: " + (fileName || "Datei"));
   };
 
   window.SetStatusChanged = function (status) {
-    setText("statusText", status, "Connecting...");
-    setText("progressLabel", String(status || "Connecting").toUpperCase());
+    const text = String(status || "Verbinden...");
+    setText("statusText", text, "Verbinden...");
+    setText("progressLabel", text.toUpperCase());
   };
 
+  function setBackground(element, path) {
+    element.style.backgroundImage = "url('" + path.replace(/'/g, "%27") + "')";
+  }
+
   function preloadBackgrounds() {
-    BACKGROUNDS.forEach(path => {
+    BACKGROUNDS.forEach((path) => {
       const image = new Image();
       image.src = path;
     });
@@ -120,54 +125,52 @@ const STAFF_MEMBERS = [
   function changeBackground() {
     if (BACKGROUNDS.length < 2) return;
 
-    const background = $("background");
-    if (!background) return;
+    const current = $("background" + activeBackground);
+    const nextName = activeBackground === "A" ? "B" : "A";
+    const next = $("background" + nextName);
+    backgroundIndex = (backgroundIndex + 1) % BACKGROUNDS.length;
+    const image = new Image();
 
-    const nextIndex = (backgroundIndex + 1) % BACKGROUNDS.length;
-    const nextImage = new Image();
-
-    nextImage.onload = function () {
-      background.classList.add("next");
-
-      setTimeout(function () {
-        background.style.backgroundImage = 'url("' + BACKGROUNDS[nextIndex] + '")';
-        background.classList.remove("next");
-        backgroundIndex = nextIndex;
-      }, 900);
+    image.onload = function () {
+      setBackground(next, BACKGROUNDS[backgroundIndex]);
+      next.classList.add("background-active");
+      current.classList.remove("background-active");
+      activeBackground = nextName;
     };
 
-    nextImage.src = BACKGROUNDS[nextIndex];
+    image.onerror = function () {
+      console.log("Background konnte nicht geladen werden: " + BACKGROUNDS[backgroundIndex]);
+    };
+
+    image.src = BACKGROUNDS[backgroundIndex];
+  }
+
+  function initBackgrounds() {
+    const first = $("backgroundA");
+    const second = $("backgroundB");
+    if (!first || !second || !BACKGROUNDS.length) return;
+    setBackground(first, BACKGROUNDS[0]);
+    second.style.backgroundImage = "none";
+    preloadBackgrounds();
+    setInterval(changeBackground, BACKGROUND_CHANGE_TIME);
   }
 
   function activateTab(index) {
-    const tabs = Array.from(document.querySelectorAll(".tab"));
-    const contents = Array.from(document.querySelectorAll(".tab-content"));
-
+    const tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+    const contents = Array.prototype.slice.call(document.querySelectorAll(".tab-content"));
     if (!tabs.length || !contents.length) return;
 
     tabIndex = ((index % tabs.length) + tabs.length) % tabs.length;
-
-    tabs.forEach((tab, currentIndex) => {
-      const active = currentIndex === tabIndex;
-      tab.classList.toggle("active", active);
-      tab.setAttribute("aria-selected", String(active));
-    });
-
-    contents.forEach(content => {
-      content.classList.toggle("active", content.id === tabs[tabIndex].dataset.tab);
-    });
+    tabs.forEach((tab, currentIndex) => tab.classList.toggle("active", currentIndex === tabIndex));
+    contents.forEach((content) => content.classList.toggle("active", content.id === tabs[tabIndex].getAttribute("data-tab")));
   }
 
   function initTabs() {
-    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
     if (!tabs.length) return;
-
-    const initiallyActive = tabs.findIndex(tab => tab.classList.contains("active"));
-    activateTab(initiallyActive >= 0 ? initiallyActive : 0);
-
-    setInterval(function () {
-      activateTab(tabIndex + 1);
-    }, TAB_CHANGE_TIME);
+    tabs.forEach((tab, index) => tab.addEventListener("click", () => activateTab(index)));
+    activateTab(0);
+    setInterval(() => activateTab(tabIndex + 1), TAB_CHANGE_TIME);
   }
 
   function getTrackName(path) {
@@ -177,8 +180,8 @@ const STAFF_MEMBERS = [
 
   function initMusic() {
     if (!MUSIC_PLAYLIST.length) return;
-
     let trackIndex = 0;
+    let started = false;
     const audio = new Audio();
     audio.volume = MUSIC_VOLUME;
     audio.preload = "auto";
@@ -187,27 +190,26 @@ const STAFF_MEMBERS = [
       trackIndex = index % MUSIC_PLAYLIST.length;
       audio.src = MUSIC_PLAYLIST[trackIndex];
       setText("musicTitle", getTrackName(MUSIC_PLAYLIST[trackIndex]), "MUSIK");
-      audio.play().catch(function () { });
+      audio.play().then(() => {
+        started = true;
+        setText("musicState", "AKTUELLER SONG");
+      }).catch(() => setText("musicState", "KLICKEN FÜR MUSIK"));
     }
 
-    audio.addEventListener("ended", function () {
-      playTrack(trackIndex + 1);
-    });
+    function startOnInput() {
+      if (!started) playTrack(trackIndex);
+    }
 
-    audio.addEventListener("error", function () {
-      if (MUSIC_PLAYLIST.length > 1) playTrack(trackIndex + 1);
-    });
-
+    audio.addEventListener("ended", () => playTrack(trackIndex + 1));
+    audio.addEventListener("error", () => setText("musicState", "AUDIO NICHT GEFUNDEN"));
+    document.addEventListener("click", startOnInput, { once: true });
+    document.addEventListener("keydown", startOnInput, { once: true });
     playTrack(0);
   }
 
   function escapeHtml(value) {
-    return String(value).replace(/[&<>'"]/g, character => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "'": "&#039;",
-      "\"": "&quot;"
+    return String(value).replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;"
     })[character]);
   }
 
@@ -220,80 +222,55 @@ const STAFF_MEMBERS = [
     const rank = String(member.rank || "Teammitglied").trim();
     const fallbackName = String(member.name || "Lädt...").trim();
     const fallbackAvatar = String(member.avatar || DEFAULT_AVATAR).trim();
-
     const card = document.createElement("article");
     card.className = "staff-member";
     card.innerHTML =
-      '<img class="staff-avatar" src="' + escapeHtml(fallbackAvatar) + '" alt="Steam-Profilbild">' +
+      '<div class="staff-avatar-wrap"><img class="staff-avatar" src="' + escapeHtml(fallbackAvatar) + '" alt="Steam Avatar"><span class="staff-online"></span></div>' +
       '<span class="staff-name">' + escapeHtml(fallbackName) + '</span>' +
       '<span class="staff-rank">' + escapeHtml(rank) + '</span>';
 
     const avatar = card.querySelector(".staff-avatar");
     const name = card.querySelector(".staff-name");
-
-    avatar.addEventListener("error", function () {
-      if (avatar.src !== DEFAULT_AVATAR) avatar.src = DEFAULT_AVATAR;
-    });
+    avatar.onerror = function () { avatar.src = DEFAULT_AVATAR; };
 
     if (!validSteamId(steamId)) {
       name.textContent = "SteamID ungültig";
       return card;
     }
 
-    loadSteamProfile(steamId, name, avatar, fallbackName, fallbackAvatar);
+    const requestUrl = STAFF_API_URL + "?steamid=" + encodeURIComponent(steamId);
+    fetch(requestUrl).then((response) => {
+      if (!response.ok) throw new Error("Steam-Profil nicht verfügbar");
+      return response.json();
+    }).then((profile) => {
+      name.textContent = profile.name || fallbackName || ("SteamID: " + steamId);
+      avatar.src = profile.avatar || fallbackAvatar;
+    }).catch(() => {
+      name.textContent = fallbackName || ("SteamID: " + steamId);
+      avatar.src = fallbackAvatar;
+    });
+
     return card;
-  }
-
-  function loadSteamProfile(steamId, nameElement, avatarElement, fallbackName, fallbackAvatar) {
-    const requestUrl = STAFF_API_URL + (STAFF_API_URL.includes("?") ? "&" : "?") +
-      "steamid=" + encodeURIComponent(steamId);
-
-    fetch(requestUrl)
-      .then(response => {
-        if (!response.ok) throw new Error("Profil konnte nicht geladen werden");
-        return response.json();
-      })
-      .then(profile => {
-        if (profile.error) throw new Error(profile.error);
-
-        nameElement.textContent = profile.name || fallbackName || ("SteamID: " + steamId);
-        avatarElement.src = profile.avatar || fallbackAvatar || DEFAULT_AVATAR;
-      })
-      .catch(function () {
-        nameElement.textContent = fallbackName || ("SteamID: " + steamId);
-        avatarElement.src = fallbackAvatar || DEFAULT_AVATAR;
-      });
   }
 
   function renderStaff() {
     const grid = $("staffGrid");
     if (!grid) return;
-
     grid.innerHTML = "";
-
-    if (!STAFF_MEMBERS.length) {
-      grid.innerHTML = '<div class="staff-loading">Noch keine Teammitglieder eingetragen.</div>';
-      return;
-    }
-
-    STAFF_MEMBERS.forEach(member => grid.appendChild(createStaffCard(member)));
+    STAFF_MEMBERS.forEach((member) => grid.appendChild(createStaffCard(member)));
   }
 
-  preloadBackgrounds();
-  renderStaff();
-  initTabs();
-  initMusic();
+  function init() {
+    initBackgrounds();
+    initTabs();
+    initMusic();
+    renderStaff();
+    showWaitingProgress();
+    setTimeout(() => {
+      if (!gotDownloadData) setText("downloadText", "Verbinde mit dem Server – warte auf Downloadinformationen...");
+    }, 1600);
+  }
 
-  setInterval(changeBackground, BACKGROUND_CHANGE_TIME);
-
-  setTimeout(function () {
-    const mapName = $("mapName");
-    if (mapName && mapName.textContent === "LADEN...") {
-      setText("serverName", "NEXUS PROJEKT | SCP:RP");
-      setText("mapName", "WARTE AUF GMOD");
-      setText("gamemode", "SCPRP");
-      setText("maxPlayers", "--");
-      setText("statusText", "Warte auf Garry's Mod...");
-    }
-  }, 800);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();

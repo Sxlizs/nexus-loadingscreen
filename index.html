@@ -1,99 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS PROJEKT | SCP:RP</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>Nexus Projekt | SCP:RP</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="background" id="background"></div>
+    <div id="backgroundA" class="background-layer background-active"></div>
+    <div id="backgroundB" class="background-layer"></div>
     <div class="background-overlay"></div>
+
+    <aside class="music-status" aria-live="polite">
+        <span class="music-icon">♫</span>
+        <span class="music-copy">
+            <span id="musicState" class="music-state">AKTUELLER SONG</span>
+            <strong id="musicTitle">MUSIK WIRD GELADEN</strong>
+        </span>
+        <span class="music-bars"><i></i><i></i><i></i></span>
+    </aside>
 
     <main class="loading-screen">
         <header class="header">
             <div class="brand">
-                <div class="logo">
-                    <img src="assets/logo.png" alt="Nexus Projekt Logo"
-                        onerror="this.style.display='none'; this.parentElement.classList.add('logo-missing');">
-                </div>
+                <div class="logo"><img src="logo.png" alt="Nexus Projekt"></div>
                 <div>
                     <div class="title">NEXUS PROJEKT</div>
-                    <div class="subtitle">SCP:RP <span>•</span> SERIOUS RP</div>
+                    <div class="subtitle">SCP:RP <span>•</span> ROLEPLAY SERVER</div>
                 </div>
             </div>
         </header>
 
         <nav class="tabs" aria-label="Informationen">
-            <div class="tab active" data-tab="welcome" aria-selected="true">WILLKOMMEN</div>
-            <div class="tab" data-tab="rules" aria-selected="false">REGELN</div>
-            <div class="tab" data-tab="staff" aria-selected="false">TEAM</div>
-            <div class="tab" data-tab="info" aria-selected="false">INFO</div>
+            <button class="tab active" data-tab="welcome" type="button">WILLKOMMEN</button>
+            <button class="tab" data-tab="rules" type="button">REGELN</button>
+            <button class="tab" data-tab="team" type="button">TEAM</button>
+            <button class="tab" data-tab="project" type="button">PROJEKT</button>
         </nav>
 
         <section class="card">
-            <div class="tab-content active" id="welcome">
+            <section id="welcome" class="tab-content active">
                 <div class="welcome">
+                    <div class="small-status"><span class="status-dot"></span><span id="statusText">Verbindung wird
+                            hergestellt...</span></div>
                     <h1>Willkommen auf <span>Nexus Projekt.</span></h1>
                     <p>Willkommen auf unserem SCP:RP Server. Erlebe immersives Roleplay, spannende Situationen und hab
                         mit uns Spaß.</p>
-                    <div class="small-status"><span class="status-dot"></span><span id="statusText">Verbindung wird
-                            hergestellt...</span></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="tab-content" id="rules">
+            <section id="rules" class="tab-content">
                 <div class="rule-list">
                     <div><b>01</b><span>Respektvoll miteinander umgehen.</span></div>
                     <div><b>02</b><span>Kein RDM, VDM oder FailRP.</span></div>
                     <div><b>03</b><span>FearRP und SeriousRP beachten.</span></div>
                     <div><b>04</b><span>Den Anweisungen des Personals folgen.</span></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="tab-content" id="staff">
+            <section id="team" class="tab-content">
                 <div class="team-heading">
                     <span>SERVER TEAM</span>
                 </div>
-                <div class="staff-grid" id="staffGrid">
+                <div id="staffGrid" class="staff-grid">
                     <div class="staff-loading">Team wird geladen...</div>
                 </div>
-            </div>
+            </section>
 
-            <div class="tab-content" id="info">
+            <section id="project" class="tab-content">
                 <div class="info-grid">
-                    <div><span>PROJEKT</span><strong>NEXUS PROJEKT</strong></div>
                     <div><span>ENTWICKLUNG</span><strong>ONLINE</strong></div>
-                    <div><span>GAMEMODE</span><strong id="staffGamemode">SCP:RP</strong></div>
+                    <div><span>GAMEMODE</span><strong id="gamemode">SCP:RP</strong></div>
                     <div><span>SERVER</span><strong id="serverName">NEXUS PROJEKT | SCP:RP</strong></div>
                     <div><span>MAP</span><strong id="mapName">LADEN...</strong></div>
                     <div><span>SLOTS</span><strong id="maxPlayers">--</strong></div>
+                    <div><span>STATUS</span><strong id="staffGamemode">SCP:RP</strong></div>
                 </div>
-            </div>
+            </section>
         </section>
 
         <footer class="footer">
             <div class="progress-area">
-                <div class="progress-text">
-                    <span id="progressLabel">CONNECTING</span>
-                    <span id="progressPercent">0%</span>
+                <div class="progress-text"><span id="progressLabel">VERBINDEN</span><span id="progressPercent">0%</span>
                 </div>
                 <div class="progress-track">
                     <div id="progressBar"></div>
                 </div>
-                <div class="download-text" id="downloadText">Verbindung wird vorbereitet...</div>
+                <div id="downloadText" class="download-text">Serververbindung wird vorbereitet...</div>
             </div>
-            <div class="footer-message">Bitte warte einen Moment, während die Serverinhalte geladen werden.</div>
+            <div class="footer-message">Bitte warte, während die Serverdaten vorbereitet werden.</div>
         </footer>
     </main>
-
-    <div class="music-status" aria-hidden="true">
-        <span class="music-dot"></span>
-        <span>SONG:</span>
-        <strong id="musicTitle">WARTELISTE</strong>
-    </div>
 
     <script src="script.js"></script>
 </body>
