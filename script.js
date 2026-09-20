@@ -1,21 +1,23 @@
 const BACKGROUNDS = [
   "background_1.jpg",
-  "background_2.jpg"
+  "background_2.jpg",
+  "background_3.jpg",
+  "background_4.jpg",
+  "background_5.jpg",
+  "background_6.jpg",
+  "background_7.jpg",
+  "background_8.jpg"
 ];
 
-const BACKGROUND_CHANGE_TIME = 10000;
-const TAB_CHANGE_TIME = 10000;
-const MUSIC_PLAYLIST = ["Warteliste.ogg"];
-const MUSIC_VOLUME = 0.18;
-const STAFF_API_URL = "https://nexus-load-api.seraphicphantom.workers.dev";
-
+const MUSIC_PLAYLIST = ["song.ogg"];
 const STAFF_MEMBERS = [
   { steamId: "76561198125443821", rank: "Community Owner" },
   { steamId: "76561198812358962", rank: "Community Manager" },
   { steamId: "76561198446667412", rank: "Community Supervisor" },
   { steamId: "76561198245818728", rank: "Team Verwaltung" },
   { steamId: "76561199376690183", rank: "Stv. Serverleiter" },
-  { steamId: "76561199221582970", rank: "Team Leitung" }
+  { steamId: "76561199221582970", rank: "Team Leitung" },
+  { steamId: "76561198281815795", rank: "Head of Mapping" }
 ];
 
 (function () {
@@ -25,6 +27,7 @@ const STAFF_MEMBERS = [
   const DEFAULT_AVATAR = "logo.png";
   let filesTotal = 0;
   let filesNeeded = 0;
+  let lastNeededValue = null;
   let backgroundIndex = 0;
   let activeBackground = "A";
   let tabIndex = 0;
@@ -41,18 +44,10 @@ const STAFF_MEMBERS = [
     const progressPercent = $("progressPercent");
     const percent = Math.max(0, Math.min(100, Number(value) || 0));
     if (progressBar) {
-      progressBar.classList.remove("waiting");
       progressBar.style.width = percent + "%";
       progressBar.style.transform = "";
     }
     if (progressPercent) progressPercent.textContent = Math.round(percent) + "%";
-  }
-
-  function showWaitingProgress() {
-    const progressBar = $("progressBar");
-    if (!progressBar || gotDownloadData) return;
-    progressBar.style.width = "35%";
-    progressBar.classList.add("waiting");
   }
 
   function updateProgress() {
@@ -66,7 +61,6 @@ const STAFF_MEMBERS = [
     setText("serverName", serverName, "NEXUS PROJEKT | SCP:RP");
     setText("mapName", mapName, "LADEN...");
     setText("gamemode", gamemode, "SCP:RP");
-    setText("staffGamemode", gamemode, "SCP:RP");
     setText("maxPlayers", maxPlayers, "--");
     setText("statusText", "Mit dem Server verbunden");
     setText("progressLabel", "VERBUNDEN");
@@ -74,24 +68,35 @@ const STAFF_MEMBERS = [
 
   window.SetFilesTotal = function (total) {
     gotDownloadData = true;
-    filesTotal = Math.max(0, Number(total) || 0);
-    filesNeeded = filesTotal;
+    filesTotal = Math.max(0, parseInt(total, 10) || 0);
+
+    if (lastNeededValue !== null) {
+      filesNeeded = Math.max(0, Math.min(lastNeededValue, filesTotal));
+    } else {
+      filesNeeded = filesTotal;
+    }
 
     if (filesTotal === 0) {
-      setProgress(100);
-      setText("progressLabel", "BEREIT");
-      setText("downloadText", "Keine zusätzlichen Dateien erforderlich.");
+      setProgress(0);
+      setText("progressLabel", "WARTEN");
+      setText("downloadText", "Warte auf Dateiinformationen...");
       return;
     }
 
-    setProgress(0);
+    updateProgress();
     setText("progressLabel", "VORBEREITEN");
-    setText("downloadText", "0 / " + filesTotal + " Dateien verarbeitet");
   };
 
   window.SetFilesNeeded = function (needed) {
     gotDownloadData = true;
-    filesNeeded = Math.max(0, Number(needed) || 0);
+    const parsedNeeded = Math.max(0, parseInt(needed, 10) || 0);
+    lastNeededValue = parsedNeeded;
+
+    if (filesTotal <= 0) {
+      filesTotal = parsedNeeded;
+    }
+
+    filesNeeded = Math.max(0, Math.min(parsedNeeded, filesTotal));
     updateProgress();
     if (filesTotal > 0 && filesNeeded === 0) {
       setProgress(100);
@@ -102,6 +107,10 @@ const STAFF_MEMBERS = [
   window.DownloadingFile = function (fileName) {
     gotDownloadData = true;
     setText("progressLabel", "DOWNLOAD");
+    if (filesTotal > 0) {
+      updateProgress();
+      return;
+    }
     setText("downloadText", "LÄDT: " + (fileName || "Datei"));
   };
 
@@ -152,7 +161,7 @@ const STAFF_MEMBERS = [
     setBackground(first, BACKGROUNDS[0]);
     second.style.backgroundImage = "none";
     preloadBackgrounds();
-    setInterval(changeBackground, BACKGROUND_CHANGE_TIME);
+    setInterval(changeBackground, 10000);
   }
 
   function activateTab(index) {
@@ -170,7 +179,7 @@ const STAFF_MEMBERS = [
     if (!tabs.length) return;
     tabs.forEach((tab, index) => tab.addEventListener("click", () => activateTab(index)));
     activateTab(0);
-    setInterval(() => activateTab(tabIndex + 1), TAB_CHANGE_TIME);
+    setInterval(() => activateTab(tabIndex + 1), 10000);
   }
 
   function getTrackName(path) {
@@ -183,7 +192,7 @@ const STAFF_MEMBERS = [
     let trackIndex = 0;
     let started = false;
     const audio = new Audio();
-    audio.volume = MUSIC_VOLUME;
+    audio.volume = 0.18;
     audio.preload = "auto";
 
     function playTrack(index) {
@@ -238,7 +247,7 @@ const STAFF_MEMBERS = [
       return card;
     }
 
-    const requestUrl = STAFF_API_URL + "?steamid=" + encodeURIComponent(steamId);
+    const requestUrl = "https://nexus-load-api.seraphicphantom.workers.dev" + "?steamid=" + encodeURIComponent(steamId);
     fetch(requestUrl).then((response) => {
       if (!response.ok) throw new Error("Steam-Profil nicht verfügbar");
       return response.json();
@@ -265,7 +274,7 @@ const STAFF_MEMBERS = [
     initTabs();
     initMusic();
     renderStaff();
-    showWaitingProgress();
+    setProgress(0);
     setTimeout(() => {
       if (!gotDownloadData) setText("downloadText", "Verbinde mit dem Server – warte auf Downloadinformationen...");
     }, 1600);
