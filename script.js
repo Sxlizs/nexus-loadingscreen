@@ -17,7 +17,8 @@ const STAFF_MEMBERS = [
   { steamId: "76561198245818728", rank: "Team Verwaltung" },
   { steamId: "76561199376690183", rank: "Stv. Serverleiter" },
   { steamId: "76561199221582970", rank: "Team Leitung" },
-  { steamId: "76561198281815795", rank: "Head of Mapping" }
+  { steamId: "76561198281815795", rank: "Head of Mapping" },
+  { steamId: "76561199158654608", rank: "Discord Verwaltung" }
 ];
 
 (function () {
@@ -247,17 +248,33 @@ const STAFF_MEMBERS = [
       return card;
     }
 
-    const requestUrl = "https://nexus-load-api.seraphicphantom.workers.dev" + "?steamid=" + encodeURIComponent(steamId);
-    fetch(requestUrl).then((response) => {
-      if (!response.ok) throw new Error("Steam-Profil nicht verfügbar");
-      return response.json();
-    }).then((profile) => {
-      name.textContent = profile.name || fallbackName || ("SteamID: " + steamId);
-      avatar.src = profile.avatar || fallbackAvatar;
-    }).catch(() => {
-      name.textContent = fallbackName || ("SteamID: " + steamId);
-      avatar.src = fallbackAvatar;
-    });
+    const requestUrl =
+      "https://nexus-load-api.seraphicphantom.workers.dev" +
+      "?steamid=" +
+      encodeURIComponent(steamId) +
+      "&v=20260920-2039";
+
+    fetch(requestUrl, {
+      cache: "no-store"
+    })
+      .then(async (response) => {
+        const profile = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(profile.error || `HTTP ${response.status}`);
+        }
+
+        return profile;
+      })
+      .then((profile) => {
+        name.textContent = profile.name || `SteamID: ${steamId}`;
+        avatar.src = profile.avatar || DEFAULT_AVATAR;
+      })
+      .catch((error) => {
+        console.error(`Steam-Profil ${steamId} konnte nicht geladen werden:`, error);
+        name.textContent = "Profil nicht verfügbar";
+        avatar.src = DEFAULT_AVATAR;
+      });
 
     return card;
   }
