@@ -14,15 +14,6 @@
     <div id="backgroundB" class="background-layer"></div>
     <div class="background-overlay"></div>
 
-    <aside class="music-status" aria-live="polite">
-        <span class="music-icon">♫</span>
-        <span class="music-copy">
-            <span id="musicState" class="music-state">AKTUELLER SONG</span>
-            <strong id="musicTitle">MUSIK WIRD GELADEN</strong>
-        </span>
-        <span class="music-bars"><i></i><i></i><i></i></span>
-    </aside>
-
     <main class="loading-screen">
         <header class="header">
             <div class="brand">
@@ -36,28 +27,16 @@
 
         <nav class="tabs" aria-label="Informationen">
             <button class="tab active" data-tab="welcome" type="button">WILLKOMMEN</button>
-            <button class="tab" data-tab="rules" type="button">REGELN</button>
             <button class="tab" data-tab="team" type="button">TEAM</button>
             <button class="tab" data-tab="project" type="button">PROJEKT</button>
         </nav>
 
         <section class="card">
             <section id="welcome" class="tab-content active">
-                <div class="welcome">
-                    <div class="small-status"><span class="status-dot"></span><span id="statusText">Verbindung wird
-                            hergestellt...</span></div>
-                    <h1>Willkommen auf <span>Nexus Projekt.</span></h1>
-                    <p>Willkommen auf unserem SCP:RP Server. Erlebe immersives Roleplay, spannende Situationen und hab
-                        mit uns Spaß.</p>
-                </div>
-            </section>
-
-            <section id="rules" class="tab-content">
-                <div class="rule-list">
-                    <div><b>01</b><span>Respektvoll miteinander umgehen.</span></div>
-                    <div><b>02</b><span>Kein RDM, VDM oder FailRP.</span></div>
-                    <div><b>03</b><span>FearRP und SeriousRP beachten.</span></div>
-                    <div><b>04</b><span>Den Anweisungen des Personals folgen.</span></div>
+                <div class="welcome welcome-stack">
+                    <h1 class="welcome-title">WILLKOMMEN AUF</h1>
+                    <img class="welcome-banner" src="welcome.png" alt="Welcome Banner">
+                    <h2 class="welcome-project">PROJEKT SCP:RP</h2>
                 </div>
             </section>
 
@@ -72,12 +51,11 @@
 
             <section id="project" class="tab-content">
                 <div class="info-grid">
-                    <div><span>ENTWICKLUNG</span><strong>ONLINE</strong></div>
+                    <div><span>ERSTELLUNGSDATUM</span><strong>20.09.2026</strong></div>
                     <div><span>GAMEMODE</span><strong id="gamemode">SCP:RP</strong></div>
                     <div><span>SERVER</span><strong id="serverName">NEXUS PROJEKT | SCP:RP</strong></div>
                     <div><span>MAP</span><strong id="mapName">LADEN...</strong></div>
                     <div><span>SLOTS</span><strong id="maxPlayers">--</strong></div>
-                    <div><span>STATUS</span><strong id="staffGamemode">SCP:RP</strong></div>
                 </div>
             </section>
         </section>
@@ -91,7 +69,6 @@
                 </div>
                 <div id="downloadText" class="download-text">Serververbindung wird vorbereitet...</div>
             </div>
-            <div class="footer-message">Bitte warte, während die Serverdaten vorbereitet werden.</div>
         </footer>
     </main>
 
