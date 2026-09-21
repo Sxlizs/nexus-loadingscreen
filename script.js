@@ -15,8 +15,8 @@ const STAFF_MEMBERS = [
   { steamId: "76561198812358962", rank: "Community Manager" },
   { steamId: "76561198446667412", rank: "Community Supervisor" },
   { steamId: "76561198245818728", rank: "Team Verwaltung" },
-  { steamId: "76561199376690183", rank: "Stv. Serverleiter" },
-  { steamId: "76561199221582970", rank: "Team Leitung" },
+  { steamId: "76561199376690183", rank: "SCP:RP Serverleiter" },
+  { steamId: "76561199221582970", rank: "SCP:RP Team Leitung" },
   { steamId: "76561198281815795", rank: "Head of Mapping" },
   { steamId: "76561199158654608", rank: "Discord Verwaltung" }
 ];
